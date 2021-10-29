@@ -26,7 +26,7 @@ grid = np.array([[0, 0, 0, 0, 0, 0, 0, 1, 0, 0],  # Row 0
         # Columns 0  1  2  3  4  5  6  7  8  9
 class GraphPlanner:
     def __init__(self, goal, method, connectivity, debug):
-        self.position = [5,5]
+        self.position = [0,0]
         #print(self.position[0]+1)
         self.goal = goal
         self.goal_str = str(self.goal)
@@ -43,27 +43,34 @@ class GraphPlanner:
 
         self.frontier = {}  # position: (depth + heuristic)
         self.depth = 0  # current position depth
-        self.frontier[self.position_str] = 0
         self.heuristic = 0
         self.explored = []
+        self.explored.append(self.position)
         self.obstacles = []
 
     def get_potential_moves(self):
         # list potential moves based on connectivity
         if self.connectivity == 8:
-            self.potential_list = [[self.position[0]- 1, self.position[1]-1],
-                                   [self.position[0]+1, self.position[1]+1],
-                                   [self.position[0], self.position[1]-1],
-                                   [self.position[0]-1, self.position[1]],
-                                   [self.position[0]+1, self.position[1]],
-                                   [self.position[0], self.position[1]+1],
-                                   [self.position[0]-1, self.position[1]+1],
-                                   [self.position[0]+1, self.position[1]-1]]
+            self.potential_list = [[self.position[0]- 1,self.position[1]-1],
+                                   [self.position[0]+1,self.position[1]+1],
+                                   [self.position[0],self.position[1]-1],
+                                   [self.position[0]-1,self.position[1]],
+                                   [self.position[0]+1,self.position[1]],
+                                   [self.position[0],self.position[1]+1],
+                                   [self.position[0]-1,self.position[1]+1],
+                                   [self.position[0]+1,self.position[1]-1]]
         if self.connectivity == 4:
-            self.potential_list = [[self.position[0], self.position[1]-1],
-                                   [self.position[0]-1, self.position[1]],
-                                   [self.position[0]+1, self.position[1]],
-                                   [self.position[0], self.position[1]+1]]
+            self.potential_list = [[self.position[0],self.position[1]-1],
+                                   [self.position[0]-1,self.position[1]],
+                                   [self.position[0]+1,self.position[1]],
+                                   [self.position[0],self.position[1]+1]]
+        # check borders
+        for item in self.potential_list:
+            if item[0] <= 0 or item[0] >= self.nrows:
+                self.potential_list.remove(item)
+        for item in self.potential_list:    
+            if item[1] <= 0 or item[1] >= self.ncolumns:
+                self.potential_list.remove(item)
         # filter out potential moves based on obstacles/wall
         for item in self.obstacles:
             if item in self.potential_list:
@@ -73,14 +80,6 @@ class GraphPlanner:
         # filter out potential movies based on explored tiles
         for item in self.explored:
             if item in self.potential_list:
-                self.potential_list.remove(item)
-            else:
-                pass
-        # check borders
-        for item in self.potential_list:
-            if item[0] < 0 or item[0] > self.nrows:
-                self.potential_list.remove(item)
-            elif item[1] < 0 or item[1] > self.ncolumns:
                 self.potential_list.remove(item)
         # check if goal is in potential moves ?
         if self.goal in self.potential_list:
@@ -93,7 +92,8 @@ class GraphPlanner:
             # add additional stuff here
         # add moves to frontier with their costs
         for move in self.potential_list:
-            self.frontier[str(move)] = (
+            move1, move2 = move
+            self.frontier[str(move1),str(move2)] = (
                 (self.depth+1)+self.find_heuristic(move))
 
     def find_heuristic(self, move):
@@ -107,25 +107,26 @@ class GraphPlanner:
     def make_move(self):
         # sort the frontier and pick the item with the least cost for BFS and A* (atleast)
         sorted_list = sorted(
-            self.frontier, key=self.frontier.get, reverse=True)  # gives a list
+            self.frontier, key=self.frontier.get, reverse=False)  # gives a list of strings
         # take top most element from the sorted_list and push as the current position and pop the element as well 
+        # print(f"sorted list: {sorted_list}")
         self.position = self.string_to_array(sorted_list[0]) # change current position to the new node
-        self.position_str = str(sorted_list[0])
-        self.explored.append(sorted_list[0]) # add to explored list
-        self.path.append(sorted_list[0])
-        self.frontier.pop(str(sorted_list[0])) # remove from frontire 
+        self.position_str = sorted_list[0]
+        self.explored.append(self.string_to_array(sorted_list[0])) # add to explored list
+        self.path.append(self.string_to_array(sorted_list[0]))
+        self.frontier.pop(sorted_list[0]) # remove from frontire 
         self.depth = self.depth +1 # adjust new depth
 
     def string_to_array(self, string):
-        array = [int(string[1]), int(string[4])]
+        array = [int(string[0]),int(string[1])]
         return array
         
 
     
 if __name__ == "__main__":
-    planner = GraphPlanner(goal=[0,0],method='BFS',connectivity=8,debug=True)
+    planner = GraphPlanner(goal=[5,9],method='BFS',connectivity=4,debug=True)
     while planner.game_over == False:
         planner.get_potential_moves()
         planner.make_move()
-    print(planner.path)
+    print(planner.explored)
 
