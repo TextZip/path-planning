@@ -11,7 +11,11 @@
 # A*, BFS, DFS and others selection
 # Obstacle generator
 ##############################################
+import matplotlib.pyplot as plt
+from matplotlib import colors
+from matplotlib.animation import FuncAnimation
 import numpy as np
+from numpy.core.fromnumeric import repeat
 
 grid = np.array([[0, 0, 0, 0, 0, 0, 0, 1, 0, 0],  # Row 0
                  [0, 1, 1, 0, 0, 0, 0, 1, 0, 0],  # Row 1
@@ -22,13 +26,14 @@ grid = np.array([[0, 0, 0, 0, 0, 0, 0, 1, 0, 0],  # Row 0
                  [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],  # Row 6
                  [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],  # Row 7
                  [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],  # Row 8
-                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])  # Row 9
-# Columns 0  1  2  3  4  5  6  7  8  9
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]) # Row 9
+        # Columns 0  1  2  3  4  5  6  7  8  9
 
 
 class GraphPlanner:
-    def __init__(self, goal, method, connectivity, debug):
-        self.position = [0, 0]
+    def __init__(self, start, goal, method, connectivity, debug):
+        self.start = start
+        self.position = start
         # print(self.position[0]+1)
         self.goal = goal
         self.goal_str = str(self.goal)
@@ -48,7 +53,7 @@ class GraphPlanner:
         self.heuristic = 0
         self.explored = []
         self.explored.append(self.position)
-        self.obstacles = []
+        self.obstacles = [[1,1],[2,1],[3,1]]
 
     def get_potential_moves(self):
         # list potential moves based on connectivity
@@ -127,9 +132,63 @@ class GraphPlanner:
 
 
 if __name__ == "__main__":
-    planner = GraphPlanner(goal=[5, 9], method='BFS',
-                           connectivity=4, debug=True)
-    while planner.game_over == False:
-        planner.get_potential_moves()
-        planner.make_move()
-    print(planner.explored)
+    planner = GraphPlanner(start=[0,0],goal=[5, 9], method='A_star',
+                           connectivity=8, debug=True)
+    def animate(i):
+        #data = np.random.rand(10, 10) * 20 #create a zero matrix
+        data = np.zeros([planner.nrows,planner.ncolumns],dtype=int)
+        if planner.game_over == False:
+            planner.get_potential_moves()
+            planner.make_move()
+            print(planner.path)
+        else:
+            pass
+            # global data
+        # format for frontire
+        for item in planner.frontier:
+            int_item = planner.string_to_array(item)
+            data[int_item[0],int_item[1]] = 22
+        # format for present
+        data[planner.position[0],planner.position[1]] = 27
+        # format for explored
+        for item in planner.explored:
+            data[item[0],item[1]] = 32
+        # format for unexplored
+            #default 
+        # format for obstacles
+        for item in planner.obstacles:
+            data[item[0],item[1]] = 37 
+        # format for start location
+        data[planner.start[0],planner.start[1]] = 12
+        # format for goal location
+        data[planner.goal[0],planner.goal[1]] = 17
+        cmap = colors.ListedColormap(['white','red','green','yellow','blue','gray','black'])
+        bounds = [0,10,15,20,25,30,35,40]
+        # start -  red
+        # goal - green
+        # frontire - yellow
+        # present - blue
+        # explored - gray
+        # unxplored - white
+        # obstacles - black
+        norm = colors.BoundaryNorm(bounds, cmap.N)
+        global fig
+        global ax
+        ax.clear()
+        ax.imshow(data, cmap=cmap, norm=norm)
+
+            # draw gridlines
+        ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=2)
+        ax.set_xticks(np.arange(-.5, 10.5, 1))
+        ax.set_yticks(np.arange(-.5, 10.5, 1))
+        ax.axes.xaxis.set_ticklabels([])
+        ax.axes.yaxis.set_ticklabels([])
+
+    def onClick(event):
+        anim.event_source.stop()
+
+    fig, ax = plt.subplots()
+    fig.canvas.mpl_connect('button_press_event', onClick)
+    anim = FuncAnimation(fig, animate)
+    plt.show()
+
