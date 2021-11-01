@@ -13,7 +13,7 @@
 ##############################################
 import matplotlib.pyplot as plt
 from matplotlib import colors
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter
 import numpy as np
 from numpy.core.fromnumeric import repeat
 
@@ -177,5 +177,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots()
     fig.canvas.mpl_connect('button_press_event', onClick)
     anim = FuncAnimation(fig, animate, interval=20)
+    # writer = PillowWriter(fps=2)  
+    # anim.save("demo_sine.gif", writer=writer)
     plt.show()
 
