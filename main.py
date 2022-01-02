@@ -119,7 +119,7 @@ class GraphPlanner:
 
 
 if __name__ == "__main__":
-    planner = GraphPlanner(start=[0,1],goal=[5, 9], method='A_star',
+    planner = GraphPlanner(start=[0,1],goal=[5, 9], method='BFS',
                            connectivity=8, obstacles=[[1,1],[1,2],[1,3],[3,1],[2,1],[4,1]])
     def animate(i):
         #data = np.random.rand(10, 10) * 20 #create a zero matrix
