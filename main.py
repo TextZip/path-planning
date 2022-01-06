@@ -18,7 +18,7 @@ import numpy as np
 from numpy.core.fromnumeric import repeat
 
 class GraphPlanner:
-    def __init__(self, start, goal, method, connectivity, nrows = 10, ncolumns = 10, debug=True, obstacles = []):
+    def __init__(self, start, goal, method, connectivity, nrows = 100, ncolumns = 100, debug=True, obstacles = []):
         self.start = start
         self.position = start
         # print(self.position[0]+1)
